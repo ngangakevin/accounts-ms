@@ -1,0 +1,43 @@
+version: '3.9'
+services:
+
+  dev:
+    container_name: accounts_ms_dev
+    image: accounts_ms_dev:0.0.1
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    ports:
+      - "3040:3000"
+      - "9231:9229"
+    networks:
+      - default
+    volumes:
+      - .:/urs/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+
+  prod:
+    container_name: accounts_ms_prod
+    image: accounts_ms_prod:0.0.1
+    build: 
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    command: npm run start:prod
+    ports:
+      - "3040:3000"
+      - "9231:9229"
+    networks:
+      - default
+    volumes:
+        - .:/usr/src/app
+        - /usr/src/app/node_modules
+    restart: unless-stopped
+  
+networks:
+  default:
+    name: quick-bank-network
+    external: true
