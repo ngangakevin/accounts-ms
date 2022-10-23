@@ -1,4 +1,4 @@
-enum AccountType {
+export enum AccountType {
     Savings = 'savings',
     Loans = 'loans',
     Overdraft = 'overdraft',

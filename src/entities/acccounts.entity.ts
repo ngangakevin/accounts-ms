@@ -1,3 +1,5 @@
+import { AccountType } from 'src/enums/accountType.enum';
+import { Currency } from 'src/enums/currency.enum';
 import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn} from 'typeorm';
 
 @Entity()
@@ -11,13 +13,13 @@ export class Accounts{
     @Column({ type: 'uuid', name: 'account_owner', nullable: false })
     accountOwner: string;
 
-    @Column({ type: 'enum', name: 'currency', nullable: false, default: AccountType.Savings })
+    @Column({ type: 'enum', enum: AccountType, name: 'currency', nullable: false, default: AccountType.Savings })
     accountType: AccountType;
 
     @Column({ type: 'float', name: 'balance', nullable: false, default: 0.0 })
     balance: number;
 
-    @Column({ type: 'enum', name: 'currency', nullable: false, default: Currency.KSH })
+    @Column({ type: 'enum', enum: Currency, name: 'currency', nullable: false, default: Currency.KSH })
     currency: Currency;
 
     @CreateDateColumn({ name: 'created_at' })

@@ -5,7 +5,7 @@ import { Accounts } from './acccounts.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature(
-        [Accounts]
+        [Accounts], 
     )],
     exports: [TypeOrmModule]
 })
