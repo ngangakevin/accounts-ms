@@ -5,6 +5,8 @@ import { CreateAccountDTO } from './common/dtos/create-account.dto';
 import { CreateDepositDTO } from './common/dtos/create-deposit.dto';
 import { CreateTransferDTO } from './common/dtos/create-transfer.dto';
 import { Accounts } from './entities/acccounts.entity';
+import { AccountType } from './enums/accountType.enum';
+import { Currency } from './enums/currency.enum';
 
 
 @Injectable()
@@ -12,10 +14,10 @@ export class AppService {
   constructor (
     @InjectRepository(Accounts)
     private readonly accountsRepository: Repository<Accounts>,
-
-    private readonly logger: Logger
   ){}
-  
+
+private readonly logger: Logger
+
 async createAccount(account: CreateAccountDTO){
 
   if (!account.accountType){
@@ -38,6 +40,7 @@ async createAccount(account: CreateAccountDTO){
     this.logger.error(error)
     throw new InternalServerErrorException({error: 'An error has occured processing your request'});
   });
+  return {account: newAccount.accountNumber};
 }
 
 async findAccById(accountId: string): Promise<Accounts>{
