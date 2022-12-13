@@ -1,28 +1,32 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { InjectDataSource, TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConfigModule } from './configs/config.module';
+import { TypeOrmConfigService } from './configs/type-orm-config.service';
 import { EntitiesModule } from './entities/entities.module';
 
-require('dotenv').config()
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require('dotenv').config();
 
 @Module({
   imports: [
     EntitiesModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.TYPEORM_HOST,
-      port: parseInt(process.env.TYPEORM_PORT),
-      username: process.env.TYPEORM_USERNAME,
-      password: process.env.TYPEORM_PASSWORD,
-      database: process.env.TYPEORM_DATABASE,
-      synchronize: true
-    })
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useExisting: TypeOrmConfigService,
+      dataSourceFactory: async (options) => {
+        return await new DataSource(options).initialize();
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
-  constructor(private datasource: DataSource){}
+  constructor(
+    @InjectDataSource()
+    private datasource: DataSource,
+  ) {}
 }

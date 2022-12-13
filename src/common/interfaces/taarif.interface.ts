@@ -1,5 +1,5 @@
-interface Taarif{
-    deposit: number,
-    withdraw: number,
-    transfer: number
+export interface ITaarif {
+  deposit: number;
+  withdraw: number;
+  transfer: number;
 }
