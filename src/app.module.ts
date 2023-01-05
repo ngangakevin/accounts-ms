@@ -14,8 +14,8 @@ require('dotenv').config();
   imports: [
     EntitiesModule,
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useExisting: TypeOrmConfigService,
+      imports: [EntitiesModule],
+      useClass: TypeOrmConfigService,
       dataSourceFactory: async (options) => {
         return await new DataSource(options).initialize();
       },

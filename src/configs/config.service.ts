@@ -4,7 +4,7 @@ import * as Joi from '@hapi/joi';
 import * as path from 'path';
 import { Injectable } from '@nestjs/common';
 import { IEnvConfig } from 'src/common/interfaces/env-config.interface';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { DataSourceOptions } from 'typeorm';
 
 @Injectable()
 export class ConfigService {
@@ -15,7 +15,7 @@ export class ConfigService {
     this.envConfig = this.validateInput(config);
   }
 
-  public getTypeormConfig(): TypeOrmModuleOptions {
+  public getTypeormConfig(): DataSourceOptions {
     const baseDir = path.join(__dirname, '../../');
     const entitiesPath = `${baseDir}${this.envConfig.TYPEORM_ENTITIES}`;
     const migrationPath = `${baseDir}${this.envConfig.TYPEORM_MIGRATIONS}`;
@@ -30,6 +30,7 @@ export class ConfigService {
       entities: [entitiesPath],
       migrations: [migrationPath],
       migrationsRun: this.envConfig.TYPEORM_MIGRATIONS_RUN === 'true',
+      synchronize: true,
     };
   }
 
