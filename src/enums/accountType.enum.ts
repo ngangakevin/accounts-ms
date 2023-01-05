@@ -1,6 +1,6 @@
 export enum AccountType {
-    Savings = 'savings',
-    Loans = 'loans',
-    Overdraft = 'overdraft',
-    FixedDeposit = 'fixedDeposit'
+  Savings = 'savings',
+  Loans = 'loans',
+  Overdraft = 'overdraft',
+  FixedDeposit = 'fixedDeposit',
 }

@@ -1,4 +1,4 @@
 export enum Currency {
-    KSH = 'Ksh',
-    USDollar = '$'
+  KSH = 'Ksh',
+  USDollar = '$',
 }
