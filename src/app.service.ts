@@ -10,7 +10,7 @@ import { CreateAccountDTO } from './common/dtos/create-account.dto';
 import { CreateDepositDTO } from './common/dtos/create-deposit.dto';
 import { CreateTransferDTO } from './common/dtos/create-transfer.dto';
 import { Accounts } from './entities/acccounts.entity';
-import { AccountType } from './enums/accountType.enum';
+import { AccountType } from '@enums';
 import { Currency } from './enums/currency.enum';
 
 @Injectable()

@@ -1,9 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { AppService } from './app.service';
-import { CreateAccountDTO } from './common/dtos/create-account.dto';
-import { CreateDepositDTO } from './common/dtos/create-deposit.dto';
-import { CreateTransferDTO } from './common/dtos/create-transfer.dto';
+import { CreateAccountDTO, CreateDepositDTO, CreateTransferDTO } from '@common';
 
 @Controller('/accounts')
 export class AppController {

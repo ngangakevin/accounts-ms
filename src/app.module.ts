@@ -3,9 +3,8 @@ import { InjectDataSource, TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from './configs/config.module';
-import { TypeOrmConfigService } from './configs/type-orm-config.service';
-import { EntitiesModule } from './entities/entities.module';
+import { ConfigModule, TypeOrmConfigService } from '@configs';
+import { EntitiesModule } from '@entities';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
@@ -14,7 +13,7 @@ require('dotenv').config();
   imports: [
     EntitiesModule,
     TypeOrmModule.forRootAsync({
-      imports: [EntitiesModule],
+      imports: [EntitiesModule, ConfigModule],
       useClass: TypeOrmConfigService,
       dataSourceFactory: async (options) => {
         return await new DataSource(options).initialize();

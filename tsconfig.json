@@ -10,6 +10,12 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@common": ["src/common/"],
+      "@configs": ["src/configs/"],
+      "@entities": ["src/entities/"],
+      "@enums": ["src/enums/"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
