@@ -2,13 +2,16 @@
   "name": "accounts-ms",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "ngangakingori",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "migration:create": "typeorm -- migration:create ",
+    "migration:generate": "npm run typeorm -- migration:generate ",
+    "migration:run": "npm run typeorm -- migration:run ",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -19,7 +22,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "typeorm-ts-node-esm -d ./config/data-source.ts"
+    "typeorm": "typeorm-ts-node-esm -d ./src/configs/database.config.ts"
   },
   "dependencies": {
     "@hapi/joi": "^17.1.1",
