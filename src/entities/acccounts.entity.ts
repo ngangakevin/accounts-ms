@@ -28,7 +28,7 @@ export class Accounts {
   @Column({
     type: 'enum',
     enum: AccountType,
-    name: 'currency',
+    name: 'account_type',
     nullable: false,
     default: AccountType.Savings,
   })
