@@ -5,7 +5,9 @@ import { ConfigModule } from './configs/config.module';
 import { ConfigService } from './configs/config.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
   const configs = app.select(ConfigModule).get(ConfigService);
   app.connectMicroservice({
     transport: Transport.REDIS,

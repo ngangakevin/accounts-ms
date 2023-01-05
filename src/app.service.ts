@@ -15,12 +15,11 @@ import { Currency } from './enums/currency.enum';
 
 @Injectable()
 export class AppService {
+  logger = new Logger(AppService.name);
   constructor(
     @InjectRepository(Accounts)
     private readonly accountsRepository: Repository<Accounts>,
   ) {}
-
-  private readonly logger: Logger;
 
   async createAccount(account: CreateAccountDTO) {
     if (!account.accountType) {
