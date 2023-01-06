@@ -6,13 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateAccountDTO } from './common/dtos/create-account.dto';
-import { CreateDepositDTO } from './common/dtos/create-deposit.dto';
-import { CreateTransferDTO } from './common/dtos/create-transfer.dto';
-import { Accounts } from './entities/acccounts.entity';
-import { AccountType } from '@enums';
-import { Currency } from './enums/currency.enum';
-import { uniqueId } from '@common';
+import { Accounts } from '@entities';
+import { AccountType, Currency } from '@enums';
+import {
+  uniqueId,
+  CreateAccountDTO,
+  CreateDepositDTO,
+  CreateTransferDTO,
+} from '@common';
 
 @Injectable()
 export class AppService {
