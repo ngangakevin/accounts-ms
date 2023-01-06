@@ -12,6 +12,7 @@ import { CreateTransferDTO } from './common/dtos/create-transfer.dto';
 import { Accounts } from './entities/acccounts.entity';
 import { AccountType } from '@enums';
 import { Currency } from './enums/currency.enum';
+import { uniqueId } from '@common';
 
 @Injectable()
 export class AppService {
@@ -30,12 +31,14 @@ export class AppService {
       account.currency = Currency.KSH;
     }
 
+    const accountNumber = 'QB' + uniqueId(12);
+
     const newAccount = this.accountsRepository.create({
-      // accountNumber: account.accountNumber,
       accountOwner: account.ownerId,
       balance: 0.0,
       currency: account.currency,
       accountType: account.accountType,
+      accountNumber,
     });
 
     await this.accountsRepository.save(newAccount).catch((error) => {

@@ -16,7 +16,7 @@ export class Accounts {
 
   @Column({
     type: 'varchar',
-    name: 'account_name',
+    name: 'account_number',
     nullable: false,
     unique: true,
   })
