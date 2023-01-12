@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -56,8 +57,8 @@ export class AppService {
       .findOneByOrFail({ id: accountId })
       .catch((error) => {
         this.logger.error(error);
-        throw new InternalServerErrorException({
-          error: 'An error has occured processing your request',
+        throw new NotFoundException({
+          error: `Account ${accountId} does not exist`,
         });
       });
     return account;
@@ -65,11 +66,11 @@ export class AppService {
 
   async findAccByNumber(accountNumber: string): Promise<Accounts> {
     const account = await this.accountsRepository
-      .findOneByOrFail({ id: accountNumber })
+      .findOneByOrFail({ accountNumber: accountNumber })
       .catch((error) => {
         this.logger.error(error);
-        throw new InternalServerErrorException({
-          error: 'An error has occured processing your request',
+        throw new NotFoundException({
+          error: `Account ${accountNumber} does not exist`,
         });
       });
     return account;
@@ -80,8 +81,8 @@ export class AppService {
       .find({ where: { accountOwner: ownerId } })
       .catch((error) => {
         this.logger.error(error);
-        throw new InternalServerErrorException({
-          error: 'An error has occured processing your request',
+        throw new NotFoundException({
+          error: `Account ${ownerId} does not exist`,
         });
       });
     return accounts;
@@ -100,7 +101,7 @@ export class AppService {
   }
 
   async depositToAccount(depoData: CreateDepositDTO) {
-    const account = await this.findAccById(depoData.accountNumber).catch(
+    const account = await this.findAccByNumber(depoData.accountNumber).catch(
       (error) => {
         this.logger.error(error);
         throw new InternalServerErrorException({
@@ -115,58 +116,57 @@ export class AppService {
         error: 'Account does not accept specified currency',
       });
     }
-    account.balance =
-      account.balance +
-      (depoData.amount - depoData.amount * depoData.taarif.deposit);
+    const charge = depoData.amount * depoData.taarif.deposit;
+    const totalCharge = depoData.amount - charge;
+    account.balance = account.balance + totalCharge;
     await this.accountsRepository.save(account).catch((error) => {
       this.logger.error(error);
       throw new InternalServerErrorException({
         error: 'An error has occured processing your request',
       });
     });
+    return {
+      transaction: 'deposit',
+      revenue: { amount: charge, currency: depoData.currency },
+      message: `Deposit of ${depoData.currency}: ${depoData.amount} to ${depoData.accountNumber} is successfull`,
+    };
   }
 
   async fundsTransfer(transferData: CreateTransferDTO) {
-    if (transferData.from.currency !== transferData.from.currency) {
-      this.logger.warn({ error: 'Currency mismatch' });
+    if (transferData.from.currency !== transferData.to.currency) {
+      this.logger.error('Currency Missmatch');
+      throw new ForbiddenException({ error: 'Currency Mismatch' });
+    }
+    const senderAccount = await this.findAccByNumber(
+      transferData.from.accountNumber,
+    );
+
+    const charge = transferData.from.amount * transferData.from.taarif.transfer;
+    const totalCharges = transferData.from.amount + charge;
+
+    if (senderAccount.balance < totalCharges) {
+      this.logger.error(
+        `${senderAccount} has insufficient balance to transfer funds`,
+      );
       throw new ForbiddenException({
-        error: 'Account does not accept specified currency',
+        error: 'Insufficient funds to commit to funds transfer.',
       });
     }
 
-    const accounts = await this.accountsRepository.findAndCount({
-      where: [
-        { accountNumber: transferData.from.accountNumber },
-        { accountNumber: transferData.to.accountNumber },
-      ],
-    });
+    const recepientAccount = await this.findAccByNumber(
+      transferData.to.accountNumber,
+    );
 
-    if (accounts[1] !== 2) {
-      this.logger.log({ error: 'Missing Account' });
-      throw new ForbiddenException({ error: 'Recepient not found' });
-    }
-
-    accounts[0][1].balance =
-      accounts[0][1].balance +
-      (transferData.from.amount -
-        transferData.from.amount * transferData.from.taarif.deposit);
-    await this.accountsRepository.save(accounts[0][1]).catch((error) => {
-      this.logger.error(error);
-      throw new InternalServerErrorException({
-        error: 'An error has occured processing your request',
-      });
-    });
-
-    accounts[0][0].balance =
-      accounts[0][0].balance -
-      (transferData.from.amount +
-        transferData.from.amount * transferData.from.taarif.deposit);
-    await this.accountsRepository.save(accounts[0][1]).catch((error) => {
-      this.logger.error(error);
-      throw new InternalServerErrorException({
-        error: 'An error has occured processing your request',
-      });
-    });
+    senderAccount.balance = senderAccount.balance - totalCharges;
+    recepientAccount.balance =
+      recepientAccount.balance + transferData.from.amount;
+    await this.accountsRepository.save(senderAccount);
+    await this.accountsRepository.save(recepientAccount);
+    return {
+      transaction: 'fundsTransfer',
+      revenue: { amount: charge, currency: transferData.from.currency },
+      message: `Transfer for ${transferData.from.currency}: ${transferData.from.amount} to ${transferData.to.accountNumber} is succesfull.`,
+    };
   }
 
   async deactivateAccount(accountNumber: string) {
@@ -176,5 +176,9 @@ export class AppService {
         this.logger.warn({ error });
         throw new ForbiddenException({ error: 'Account does not exist' });
       });
+
+    return {
+      message: 'Account has been deactivated successfully',
+    };
   }
 }

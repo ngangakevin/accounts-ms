@@ -1,4 +1,4 @@
-import { ITaarif } from '../interfaces/taarif.interface';
+import { ITaarif } from '@common';
 
 export class CreateDepositDTO {
   accountNumber: string;

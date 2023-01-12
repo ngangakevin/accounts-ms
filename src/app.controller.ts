@@ -22,16 +22,12 @@ export class AppController {
   @Post('/deposit')
   @MessagePattern('account_deposit')
   async accountDeposit(@Body() deposit: CreateDepositDTO) {
-    await this.appService.depositToAccount(deposit);
-    return { message: `Successfull deposit to ${deposit.accountNumber}` };
+    return await this.appService.depositToAccount(deposit);
   }
 
   @Post('/transfer')
   @MessagePattern('/transfer_funds')
   async transferFunds(@Body() transferData: CreateTransferDTO) {
-    await this.appService.fundsTransfer(transferData);
-    return {
-      message: `Successful funds transfer from ${transferData.from.accountNumber}`,
-    };
+    return await this.appService.fundsTransfer(transferData);
   }
 }
