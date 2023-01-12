@@ -5,4 +5,5 @@ export class CreateDepositDTO {
   amount: number;
   currency: string;
   taarif: ITaarif;
+  channel: string;
 }

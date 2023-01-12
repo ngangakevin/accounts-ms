@@ -14,15 +14,36 @@ import {
   CreateAccountDTO,
   CreateDepositDTO,
   CreateTransferDTO,
+  ITransaction,
 } from '@common';
+import {
+  ClientOptions,
+  ClientProxy,
+  ClientProxyFactory,
+  Transport,
+} from '@nestjs/microservices';
+
+const clientOptions: ClientOptions = {
+  transport: Transport.REDIS,
+  options: {
+    port: parseInt(process.env.REDIS_PORT),
+    host: process.env.REDIS_HOST,
+    retryAttempts: parseInt(process.env.REDIS_CONNECTION_RETRY),
+    retryDelay: parseInt(process.env.REDIS_CONNECTION_RETRY_BACKOFF),
+  },
+};
 
 @Injectable()
 export class AppService {
   logger = new Logger(AppService.name);
+  private readonly accountsClient: ClientProxy;
+
   constructor(
     @InjectRepository(Accounts)
     private readonly accountsRepository: Repository<Accounts>,
-  ) {}
+  ) {
+    this.accountsClient = ClientProxyFactory.create(clientOptions);
+  }
 
   async createAccount(account: CreateAccountDTO) {
     if (!account.accountType) {
@@ -49,6 +70,7 @@ export class AppService {
         error: 'An error has occured processing your request',
       });
     });
+    this.accountsClient.send('new_account_notification', newAccount);
     return { account: newAccount.accountNumber };
   }
 
@@ -125,6 +147,19 @@ export class AppService {
         error: 'An error has occured processing your request',
       });
     });
+    const newTransaction: ITransaction = {
+      transactionTime: Date.now().toLocaleString(),
+      beneficiary: account,
+      channel: depoData.channel,
+      fundsSource: 'deposit',
+      amount: depoData.amount,
+    };
+    this.accountsClient.send('deposit_notifications', newTransaction);
+    this.accountsClient.send('deposit_transaction', newTransaction);
+    this.accountsClient.send('deposit_revenue', {
+      amount: charge,
+      currency: depoData.currency,
+    });
     return {
       transaction: 'deposit',
       revenue: { amount: charge, currency: depoData.currency },
@@ -141,10 +176,17 @@ export class AppService {
       transferData.from.accountNumber,
     );
 
-    const charge = transferData.from.amount * transferData.from.taarif.transfer;
-    const totalCharges = transferData.from.amount + charge;
+    const senderProvisionalCharge =
+      transferData.from.amount * transferData.from.taarif.transfer;
+    const totalSenderDeductions =
+      transferData.from.amount + senderProvisionalCharge;
 
-    if (senderAccount.balance < totalCharges) {
+    const recepientProvisionalCharge =
+      transferData.from.amount * transferData.to.taarif.deposit;
+    const totalRecepientCredit =
+      transferData.from.amount - recepientProvisionalCharge;
+
+    if (senderAccount.balance < totalSenderDeductions) {
       this.logger.error(
         `${senderAccount} has insufficient balance to transfer funds`,
       );
@@ -157,14 +199,30 @@ export class AppService {
       transferData.to.accountNumber,
     );
 
-    senderAccount.balance = senderAccount.balance - totalCharges;
+    senderAccount.balance = senderAccount.balance - totalSenderDeductions;
     recepientAccount.balance =
       recepientAccount.balance + transferData.from.amount;
     await this.accountsRepository.save(senderAccount);
     await this.accountsRepository.save(recepientAccount);
+    const newTransaction: ITransaction = {
+      transactionTime: Date.now().toLocaleString(),
+      beneficiary: recepientAccount,
+      channel: transferData.channel,
+      fundsSource: 'deposit',
+      amount: transferData.from.amount,
+    };
+    this.accountsClient.send('transfer_notifications', newTransaction);
+    this.accountsClient.send('transfer_transaction', newTransaction);
+    this.accountsClient.send('transfer_revenue', {
+      amount: totalRecepientCredit,
+      currency: transferData.from.currency,
+    });
     return {
       transaction: 'fundsTransfer',
-      revenue: { amount: charge, currency: transferData.from.currency },
+      revenue: {
+        amount: totalRecepientCredit,
+        currency: transferData.from.currency,
+      },
       message: `Transfer for ${transferData.from.currency}: ${transferData.from.amount} to ${transferData.to.accountNumber} is succesfull.`,
     };
   }
