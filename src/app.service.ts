@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -16,34 +17,17 @@ import {
   CreateTransferDTO,
   ITransaction,
 } from '@common';
-import {
-  ClientOptions,
-  ClientProxy,
-  ClientProxyFactory,
-  Transport,
-} from '@nestjs/microservices';
-
-const clientOptions: ClientOptions = {
-  transport: Transport.REDIS,
-  options: {
-    port: parseInt(process.env.REDIS_PORT),
-    host: process.env.REDIS_HOST,
-    retryAttempts: parseInt(process.env.REDIS_CONNECTION_RETRY),
-    retryDelay: parseInt(process.env.REDIS_CONNECTION_RETRY_BACKOFF),
-  },
-};
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class AppService {
   logger = new Logger(AppService.name);
-  private readonly accountsClient: ClientProxy;
 
   constructor(
     @InjectRepository(Accounts)
     private readonly accountsRepository: Repository<Accounts>,
-  ) {
-    this.accountsClient = ClientProxyFactory.create(clientOptions);
-  }
+    @Inject('ACCOUNTS_SERVICE') private accountsClient: ClientProxy,
+  ) {}
 
   async createAccount(account: CreateAccountDTO) {
     if (!account.accountType) {
@@ -70,8 +54,7 @@ export class AppService {
         error: 'An error has occured processing your request',
       });
     });
-    this.accountsClient.send('new_account_notification', newAccount);
-    return { account: newAccount.accountNumber };
+    return this.accountsClient.send('create_account', newAccount);
   }
 
   async findAccById(accountId: string): Promise<Accounts> {
@@ -154,17 +137,11 @@ export class AppService {
       fundsSource: 'deposit',
       amount: depoData.amount,
     };
-    this.accountsClient.send('deposit_notifications', newTransaction);
-    this.accountsClient.send('deposit_transaction', newTransaction);
-    this.accountsClient.send('deposit_revenue', {
+    return this.accountsClient.send('deposit', {
+      newTransaction,
       amount: charge,
       currency: depoData.currency,
     });
-    return {
-      transaction: 'deposit',
-      revenue: { amount: charge, currency: depoData.currency },
-      message: `Deposit of ${depoData.currency}: ${depoData.amount} to ${depoData.accountNumber} is successfull`,
-    };
   }
 
   async fundsTransfer(transferData: CreateTransferDTO) {
@@ -211,20 +188,11 @@ export class AppService {
       fundsSource: 'deposit',
       amount: transferData.from.amount,
     };
-    this.accountsClient.send('transfer_notifications', newTransaction);
-    this.accountsClient.send('transfer_transaction', newTransaction);
-    this.accountsClient.send('transfer_revenue', {
+    return this.accountsClient.send('transfer', {
+      newTransaction,
       amount: totalRecepientCredit,
       currency: transferData.from.currency,
     });
-    return {
-      transaction: 'fundsTransfer',
-      revenue: {
-        amount: totalRecepientCredit,
-        currency: transferData.from.currency,
-      },
-      message: `Transfer for ${transferData.from.currency}: ${transferData.from.amount} to ${transferData.to.accountNumber} is succesfull.`,
-    };
   }
 
   async deactivateAccount(accountNumber: string) {
