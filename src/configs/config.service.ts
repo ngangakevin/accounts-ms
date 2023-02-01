@@ -5,6 +5,7 @@ import * as path from 'path';
 import { Injectable } from '@nestjs/common';
 import { IEnvConfig } from 'src/common/interfaces/env-config.interface';
 import { DataSourceOptions } from 'typeorm';
+import { Transport, RedisOptions } from '@nestjs/microservices';
 
 @Injectable()
 export class ConfigService {
@@ -31,6 +32,18 @@ export class ConfigService {
       migrations: [migrationPath],
       migrationsRun: this.envConfig.TYPEORM_MIGRATIONS_RUN === 'true',
       synchronize: true,
+    };
+  }
+
+  public getMicroserviceConfig(): RedisOptions {
+    return {
+      transport: Transport.REDIS,
+      options: {
+        port: parseInt(this.envConfig.REDIS_PORT),
+        host: this.envConfig.REDIS_HOST,
+        retryAttempts: parseInt(this.envConfig.REDIS_CONNECTION_RETRY),
+        retryDelay: parseInt(this.envConfig.REDIS_CONNECTION_RETRY_BACKOFF),
+      },
     };
   }
 
