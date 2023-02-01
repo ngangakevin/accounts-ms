@@ -7,7 +7,5 @@ dotenv.config({ path: __dirname + '../../env/development.env' });
 
 const configDir = path.join(__dirname, '../../env/development.env');
 
-console.log(configDir);
-
 const config = new ConfigService(configDir);
 export default new DataSource(config.getTypeormConfig());
