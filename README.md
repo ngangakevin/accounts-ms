@@ -92,7 +92,7 @@ $ docker-compose up dev
 $ docker-compose run prod
 
 # Run the project
-$ docker-compose up 
+$ docker-compose up prod
 
 # The server will initialize in the <http://localhost:3000>
 ```
