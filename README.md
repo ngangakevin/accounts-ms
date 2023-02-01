@@ -9,10 +9,10 @@
 <h1 align="center">{{Accounts MS}}</h1>
 
 <p align="center">
-  <img alt="Github top language" src="https://img.shields.io/github/languages/top/{{github}}/{{repository}}?color=56BEB8">
-  <img alt="Github language count" src="https://img.shields.io/github/languages/count/{{github}}/{{repository}}?color=56BEB8">
-  <img alt="Repository size" src="https://img.shields.io/github/repo-size/{{github}}/{{repository}}?color=56BEB8">
-  <img alt="License" src="https://img.shields.io/github/license/{{github}}/{{repository}}?color=56BEB8">
+  <img alt="Github top language" src="https://img.shields.io/github/languages/top/ngangakevin/accounts-ms?color=56BEB8">
+  <img alt="Github language count" src="https://img.shields.io/github/languages/count/ngangakevin/accounts-ms?color=56BEB8">
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/ngangakevin/accounts-ms?color=56BEB8">
+  <img alt="License" src="https://img.shields.io/github/license/ngangakevin/accounts-ms?color=56BEB8">
   <!-- <img alt="Github issues" src="https://img.shields.io/github/issues/{{github}}/{{repository}}?color=56BEB8" /> -->
   <!-- <img alt="Github forks" src="https://img.shields.io/github/forks/{{github}}/{{repository}}?color=56BEB8" /> -->
   <!-- <img alt="Github stars" src="https://img.shields.io/github/stars/{{github}}/{{repository}}?color=56BEB8" /> -->
@@ -33,7 +33,7 @@
   <a href="#white_check_mark-requirements">Requirements</a> &#xa0; | &#xa0;
   <a href="#checkered_flag-starting">Starting</a> &#xa0; | &#xa0;
   <a href="#memo-license">License</a> &#xa0; | &#xa0;
-  <a href="https://github.com/{{github}}" target="_blank">Author</a>
+  <a href="https://github.com/ngangakevin" target="_blank">Author</a>
 </p>
 
 <br>
@@ -70,7 +70,7 @@ Before starting :checkered_flag:, you need to have [Git](https://git-scm.com), [
 
 ```bash
 # Clone this project
-$ git clone https://github.com/{{github}}/{{repository}}
+$ git clone https://github.com/ngangakevin/accounts-ms
 
 # Access
 $ cd {{repository}}
@@ -102,7 +102,7 @@ $ docker-compose up
 This project is under license from MIT. For more details, see the [LICENSE](LICENSE) file.
 
 
-Made with :heart: by <a href="https://github.com/{{github}}" target="_blank">{{Nganga kingori}}</a>
+Made with :heart: by <a href="https://github.com/ngangakevin/accounts-ms" target="_blank">Kevin Nganga Kingori</a>
 
 &#xa0;
 
