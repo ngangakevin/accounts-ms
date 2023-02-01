@@ -46,10 +46,10 @@ As part of Quickbank, the accounts microservice is responsible for operations wi
 
 :heavy_check_mark: Opening accounts;\
 :heavy_check_mark: Search accounts;\
-:heavy_check_mark: Deposit to account;
-:heavy_check_mark: Account to Account transfer;
-:heavy_check_mark: Account termination;
-:heavy_check_mark: Account freeze;
+:heavy_check_mark: Deposit to account;\
+:heavy_check_mark: Account to Account transfer;\
+:heavy_check_mark: Account termination;\
+:heavy_check_mark: Account freeze;\
 :heavy_check_mark: Account charge remitance;
 ## :rocket: Technologies ##
 
