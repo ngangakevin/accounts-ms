@@ -95,7 +95,7 @@ export class AppService {
 
   async findByType(accountType: AccountType): Promise<Accounts[]> {
     const accounts = await this.accountsRepository
-      .find({ where: { accountOwner: accountType } })
+      .find({ where: { accountType: accountType } })
       .catch((error) => {
         this.logger.error(error);
         throw new InternalServerErrorException({
