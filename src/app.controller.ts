@@ -1,6 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { CreateAccountDTO, CreateDepositDTO, CreateTransferDTO } from '@common';
+import {
+  CreateAccountDTO,
+  CreateDepositDTO,
+  CreateTransferDTO,
+  FreezeTimeDTO,
+} from '@common';
 import { MessagePattern } from '@nestjs/microservices';
 import { AccountType } from './enums';
 
@@ -50,6 +55,14 @@ export class AppController {
   @Post('/transfer')
   async transferFunds(@Body() transferData: CreateTransferDTO) {
     return this.appService.fundsTransfer(transferData);
+  }
+
+  @Delete('freeze/:accountNumber')
+  async freezeAccount(
+    @Param('accountNumber') accountNumber: string,
+    @Body() freezeTime: FreezeTimeDTO,
+  ) {
+    return this.appService.freezeAccount(accountNumber, freezeTime);
   }
 
   @Delete('delete/:accountNumber')

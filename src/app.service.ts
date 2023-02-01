@@ -16,6 +16,7 @@ import {
   CreateDepositDTO,
   CreateTransferDTO,
   ITransaction,
+  FreezeTimeDTO,
 } from '@common';
 import { ClientProxy } from '@nestjs/microservices';
 
@@ -193,6 +194,28 @@ export class AppService {
       amount: totalRecepientCredit,
       currency: transferData.from.currency,
     });
+  }
+
+  async freezeAccount(accountNumber: string, freezeTime?: FreezeTimeDTO) {
+    const account = await this.findAccByNumber(accountNumber);
+    if (freezeTime) {
+      account.activatedAt = new Date();
+      if (freezeTime.days) {
+        account.activatedAt.setDate(new Date().getDate() + freezeTime.days);
+      }
+      if (freezeTime.months) {
+        account.activatedAt.setDate(new Date().getMonth() + freezeTime.months);
+      }
+      if (freezeTime.years) {
+        account.activatedAt.setDate(
+          new Date().getFullYear() + freezeTime.years,
+        );
+      }
+    }
+    account.deletedAt = new Date();
+    return {
+      message: 'Account has been freezed successfully',
+    };
   }
 
   async deactivateAccount(accountNumber: string) {

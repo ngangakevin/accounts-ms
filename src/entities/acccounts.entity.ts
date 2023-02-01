@@ -46,6 +46,12 @@ export class Accounts {
   })
   currency: Currency;
 
+  @Column({
+    type: 'date',
+    name: 'activated_at',
+  })
+  activatedAt: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
