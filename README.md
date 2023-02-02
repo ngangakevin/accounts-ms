@@ -73,7 +73,7 @@ Before starting :checkered_flag:, you need to have [Git](https://git-scm.com), [
 $ git clone https://github.com/ngangakevin/accounts-ms
 
 # Access
-$ cd {{repository}}
+$ cd accounts-ms
 
 # build docker image for development
 $ docker-compose build dev
