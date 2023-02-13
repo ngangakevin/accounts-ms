@@ -1,5 +1,4 @@
-import { AccountType } from 'src/enums/accountType.enum';
-import { Currency } from 'src/enums/currency.enum';
+import { AccountType, Currency } from '@enums';
 import {
   Entity,
   PrimaryGeneratedColumn,

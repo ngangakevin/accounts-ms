@@ -31,14 +31,6 @@ export class AppService {
   ) {}
 
   async createAccount(account: CreateAccountDTO) {
-    if (!account.accountType) {
-      account.accountType = AccountType.Savings;
-    }
-
-    if (!account.currency) {
-      account.currency = Currency.KSH;
-    }
-
     const accountNumber = 'QB' + uniqueId(12);
 
     const newAccount = this.accountsRepository.create({
