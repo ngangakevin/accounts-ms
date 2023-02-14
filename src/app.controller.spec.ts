@@ -10,7 +10,8 @@ describe('AppController', () => {
       controllers: [AppController],
       providers: [AppService],
     }).compile();
-
     appController = app.get<AppController>(AppController);
   });
+
+  test.todo('add unit tests to this controller.');
 });

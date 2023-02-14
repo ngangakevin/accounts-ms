@@ -142,14 +142,14 @@ describe('AccountsAppService', () => {
 
   describe('When findAccByOwner is called', () => {
     const owner = '1234';
-    test('account owner is passed as an accountNumber parameter', async () => {
+    test('account owner is passed as an account owner id parameter', async () => {
       jest.spyOn(service, 'findAccByOwner');
       await service.findAccByOwner(owner);
       expect(accountsRepository.find).toBeCalledWith({
         where: { accountOwner: owner },
       });
     });
-    test('database performs successfull search for account_number', async () => {
+    test('database performs successfull search for account owner', async () => {
       jest.spyOn(service, 'findAccByOwner');
       const account = await service.findAccByOwner(owner);
       expect(accountsRepository.find).toBeCalledTimes(1);
@@ -160,16 +160,16 @@ describe('AccountsAppService', () => {
 
   describe('When findAccByType is called', () => {
     const accountType = AccountType.Loans;
-    test('account owner is passed as an accountNumber parameter', async () => {
+    test('account owner is passed as an account type parameter', async () => {
       jest.spyOn(service, 'findByType');
       await service.findByType(accountType);
       expect(accountsRepository.find).toBeCalledWith({
         where: { accountType: accountType },
       });
     });
-    test('database performs successfull search for account_number', async () => {
+    test('database performs successfull search for account type', async () => {
       jest.spyOn(service, 'findByType');
-      const account = await service.findAccByOwner(accountType);
+      const account = await service.findByType(accountType);
       expect(accountsRepository.find).toBeCalledTimes(1);
       expect(accountsRepository.find).toReturn();
       expect(account).toMatchObject([new Accounts()]);

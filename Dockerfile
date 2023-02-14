@@ -12,6 +12,8 @@ COPY . .
 
 RUN npm run build
 
+RUN npm run test
+
 
 FROM node:16.17.1-alpine AS production
 
