@@ -17,7 +17,7 @@ export class ConfigService {
   }
 
   public getTypeormConfig(): DataSourceOptions {
-    const baseDir = path.join(__dirname, '../../');
+    const baseDir = path.join(__dirname, '../../../');
     const entitiesPath = `${baseDir}${this.envConfig.TYPEORM_ENTITIES}`;
     const migrationPath = `${baseDir}${this.envConfig.TYPEORM_MIGRATIONS}`;
     const type: any = this.envConfig.TYPEORM_CONNECTION;
