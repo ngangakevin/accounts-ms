@@ -48,6 +48,7 @@ export class Accounts {
   @Column({
     type: 'date',
     name: 'activated_at',
+    nullable: true,
   })
   activatedAt: Date;
 
