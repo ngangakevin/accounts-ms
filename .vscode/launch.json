@@ -8,7 +8,7 @@
             "type": "node",
             "name": "Debug (Attach)",
             "request": "attach",
-            "port": 9290,
+            "port": 9229,
             "sourceMaps": true,
             "cwd": "${workspaceRoot}",
             "protocol": "inspector",
