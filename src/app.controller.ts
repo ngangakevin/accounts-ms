@@ -5,6 +5,8 @@ import {
   CreateDepositDTO,
   CreateTransferDTO,
   FreezeTimeDTO,
+  ReactivateDTO,
+  DeleteDTO,
 } from '@common';
 import { MessagePattern } from '@nestjs/microservices';
 import { AccountType } from './enums';
@@ -12,11 +14,7 @@ import { AccountType } from './enums';
 @Controller('/accounts')
 export class AppController {
   constructor(private readonly appService: AppService) {}
-  // create microservice
-  // publish deposit
-  // publish transfer notification (To and from accounts
-  // on-demand statements
-  // live-statements
+  // TODO  cron to reactivate freezed accounts.
 
   @Get('/find-account/user/:userId')
   @MessagePattern('find_account_by_owner')
@@ -57,16 +55,20 @@ export class AppController {
     return this.appService.fundsTransfer(transferData);
   }
 
-  @Delete('freeze/:accountNumber')
-  async freezeAccount(
-    @Param('accountNumber') accountNumber: string,
-    @Body() freezeTime: FreezeTimeDTO,
-  ) {
-    return this.appService.freezeAccount(accountNumber, freezeTime);
+  @Post('reactivate')
+  async reactivateAcccount(@Body() reactivateData: ReactivateDTO) {
+    return this.appService.reactivateAccount(reactivateData);
   }
 
-  @Delete('delete/:accountNumber')
-  async deactivateAccount(@Param('accountNumber') accountNumber: string) {
-    return this.appService.deactivateAccount(accountNumber);
+  @Delete('freeze')
+  @MessagePattern('freeze_Account')
+  async freezeAccount(@Body() freezeTime: FreezeTimeDTO) {
+    return this.appService.freezeAccount(freezeTime);
+  }
+
+  @Delete('delete')
+  @MessagePattern('deactivate_account')
+  async deactivateAccount(@Body() deleteDTO: DeleteDTO) {
+    return this.appService.deactivateAccount(deleteDTO);
   }
 }

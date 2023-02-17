@@ -17,8 +17,11 @@ import {
   CreateTransferDTO,
   ITransaction,
   FreezeTimeDTO,
+  DeleteDTO,
+  ReactivateDTO,
 } from '@common';
 import { ClientProxy } from '@nestjs/microservices';
+import { TransactionType } from './enums/transter-type.enum';
 
 @Injectable()
 export class AppService {
@@ -129,6 +132,10 @@ export class AppService {
       channel: depoData.channel,
       fundsSource: 'deposit',
       amount: depoData.amount,
+      transaction: Currency.KSH,
+      transactionType: TransactionType.Deposit,
+      creditCharge: 0,
+      debitCharge: depoData.taarif.deposit,
     };
     return this.accountsClient.send('deposit', {
       newTransaction,
@@ -170,17 +177,21 @@ export class AppService {
     );
 
     senderAccount.balance = senderAccount.balance - totalSenderDeductions;
-    recepientAccount.balance =
-      recepientAccount.balance + transferData.from.amount;
+    recepientAccount.balance = recepientAccount.balance + totalRecepientCredit;
     await this.accountsRepository.save(senderAccount);
     await this.accountsRepository.save(recepientAccount);
     const newTransaction: ITransaction = {
       transactionTime: Date.now().toLocaleString(),
       beneficiary: recepientAccount,
       channel: transferData.channel,
-      fundsSource: 'deposit',
+      fundsSource: transferData.from.accountNumber,
       amount: transferData.from.amount,
+      transaction: Currency.KSH,
+      transactionType: TransactionType.Transfer,
+      creditCharge: transferData.from.taarif.transfer,
+      debitCharge: transferData.to.taarif.deposit,
     };
+
     return this.accountsClient.send('transfer', {
       newTransaction,
       amount: totalRecepientCredit,
@@ -188,38 +199,62 @@ export class AppService {
     });
   }
 
-  async freezeAccount(accountNumber: string, freezeTime?: FreezeTimeDTO) {
-    const account = await this.findAccByNumber(accountNumber);
-    if (freezeTime) {
+  async freezeAccount(freezeTime: FreezeTimeDTO) {
+    const account = await this.findAccByNumber(freezeTime.accountNumber);
+    if (freezeTime.days) {
       account.activatedAt = new Date();
-      if (freezeTime.days) {
-        account.activatedAt.setDate(new Date().getDate() + freezeTime.days);
-      }
-      if (freezeTime.months) {
-        account.activatedAt.setDate(new Date().getMonth() + freezeTime.months);
-      }
-      if (freezeTime.years) {
-        account.activatedAt.setDate(
-          new Date().getFullYear() + freezeTime.years,
-        );
-      }
+      account.activatedAt.setDate(new Date().getDate() + freezeTime.days);
     }
+
+    if (freezeTime.months) {
+      account.activatedAt = new Date();
+      account.activatedAt.setMonth(new Date().getMonth() + freezeTime.months);
+    }
+
+    if (freezeTime.years) {
+      account.activatedAt = new Date();
+      account.activatedAt.setFullYear(
+        new Date().getFullYear() + freezeTime.years,
+      );
+    }
+
     account.deletedAt = new Date();
+    await this.accountsRepository.save(account);
+
     return {
       message: 'Account has been freezed successfully',
     };
   }
 
-  async deactivateAccount(accountNumber: string) {
-    await this.accountsRepository
-      .softDelete({ id: accountNumber })
-      .catch((error) => {
-        this.logger.warn({ error });
-        throw new ForbiddenException({ error: 'Account does not exist' });
-      });
+  async deactivateAccount(deleteDTO: DeleteDTO) {
+    const account = await this.findAccByNumber(deleteDTO.accountNumber);
+    account.deletedAt = new Date();
 
-    return {
-      message: 'Account has been deactivated successfully',
-    };
+    await this.accountsRepository.save(account).catch((error) => {
+      this.logger.error(error);
+      throw new InternalServerErrorException({
+        error: 'An error has occured while processing your request',
+      });
+    });
+
+    return { message: 'Account has been deactivated successfully' };
+  }
+
+  async reactivateAccount(reactivateData: ReactivateDTO) {
+    const account = await this.accountsRepository
+      .findOne({
+        where: { accountNumber: reactivateData.accountNumber },
+        withDeleted: true,
+      })
+      .catch((error) => {
+        console.log(error);
+        throw new Error('error');
+      });
+    account.deletedAt = null;
+    account.activatedAt = new Date();
+
+    await this.accountsRepository.save(account);
+
+    return { message: 'Account has been reactivated successfully' };
   }
 }
