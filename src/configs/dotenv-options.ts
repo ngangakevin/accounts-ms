@@ -4,7 +4,7 @@ import * as path from 'path';
 const logger = new Logger();
 const env = process.env.NODE_ENV || 'development';
 const p = path.join(process.cwd(), `env/${env}.env`);
-logger.log(`Loading environment from ${p}`);
+logger.log(`Loading ${env} environment from ${p}`);
 const dotEnvOptions = {
   path: p,
 };
