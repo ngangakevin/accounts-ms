@@ -4,9 +4,7 @@ import { Repository } from 'typeorm';
 import { Accounts } from '@entities';
 import { AccountType, Currency } from '@enums';
 import { AppService } from './app.service';
-import { uniqueId } from '@common';
-
-const DETAULT_ACCOUNT_ID = uniqueId(12);
+import { ForbiddenException } from '@nestjs/common';
 
 const MOCK_ACCOUNTS_ENTITY: Accounts = {
   id: 'testUUID',
@@ -34,11 +32,7 @@ describe('AccountsAppService', () => {
           useValue: {
             find: jest
               .fn()
-              .mockResolvedValueOnce([
-                {
-                  id: DETAULT_ACCOUNT_ID,
-                },
-              ])
+              .mockResolvedValueOnce([MOCK_ACCOUNTS_ENTITY])
               .mockRejectedValueOnce(new Error()),
             save: jest.fn().mockResolvedValue(MOCK_ACCOUNTS_ENTITY),
             create: jest.fn().mockResolvedValue(MOCK_ACCOUNTS_ENTITY),
@@ -175,4 +169,82 @@ describe('AccountsAppService', () => {
       expect(account).toMatchObject([new Accounts()]);
     });
   });
+
+  describe('When depositToAccount is called', () => {
+    const MockDepositDTO = {
+      accountNumber: 'test_account',
+      amount: 100,
+      channel: 'mpesa',
+      currency: Currency.KSH,
+      taarif: {
+        deposit: 0.1,
+        transfer: 0.1,
+        withdraw: 0.1,
+      },
+    };
+
+    test('Deposit currency should match account currency', async () => {
+      const depoDTOWithDiffCurrency = {
+        accountNumber: 'test_account',
+        amount: 100,
+        channel: 'mpesa',
+        currency: Currency.USDollar,
+        taarif: {
+          deposit: 0.1,
+          transfer: 0.1,
+          withdraw: 0.1,
+        },
+      };
+      expect(
+        service.depositToAccount(depoDTOWithDiffCurrency),
+      ).rejects.toThrowError(ForbiddenException);
+    });
+
+    test('Deductions to the deposit comensurate to the deposit taarif are made', async () => {
+      const updatedAccount = {
+        id: 'testUUID',
+        accountNumber: 'testNumber',
+        accountOwner: 'testOwner',
+        accountType: AccountType.Savings,
+        balance: 90,
+        currency: MOCK_ACCOUNTS_ENTITY.currency,
+        activatedAt: MOCK_ACCOUNTS_ENTITY.activatedAt,
+        createdAt: MOCK_ACCOUNTS_ENTITY.createdAt,
+        deletedAt: MOCK_ACCOUNTS_ENTITY.deletedAt,
+        updatedAt: MOCK_ACCOUNTS_ENTITY.updatedAt,
+        updatedBy: 'testUser',
+      };
+      jest.spyOn(accountsRepository, 'save');
+      await service.depositToAccount(MockDepositDTO);
+      expect(accountsRepository.save).toHaveBeenCalledWith(updatedAccount);
+    });
+
+    test('An update is made to the account that is being deposited to', async () => {
+      jest.spyOn(accountsRepository, 'save');
+      await service.deactivateAccount(MockDepositDTO);
+      expect(accountsRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    test('Amount deposited should always be greater than 1', () => {
+      const depoDTOWithNegativeAmount = {
+        accountNumber: 'test_account',
+        amount: -100,
+        channel: 'mpesa',
+        currency: Currency.KSH,
+        taarif: {
+          deposit: 0.1,
+          transfer: 0.1,
+          withdraw: 0.1,
+        },
+      };
+      expect(
+        service.depositToAccount(depoDTOWithNegativeAmount),
+      ).rejects.toThrowError(ForbiddenException);
+    });
+  });
+  // describe('When freezeAccount is called', () => {});
+
+  // describe('When deactivateAccount is called', () => {});
+
+  // describe('When reactivateAccount is called', () => {});
 });
