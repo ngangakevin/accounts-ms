@@ -104,10 +104,13 @@ export class AppService {
   async depositToAccount(depoData: CreateDepositDTO) {
     const account = await this.findAccByNumber(depoData.accountNumber).catch(
       (error) => {
-        this.logger.error(error);
-        throw new InternalServerErrorException({
-          error: 'An error has occured processing your request',
-        });
+        if (error.status !== 404) {
+          this.logger.error(error);
+          throw new InternalServerErrorException({
+            error: 'An error has occured processing your request',
+          });
+        }
+        throw error;
       },
     );
     if (depoData.currency !== account.currency) {
@@ -120,12 +123,18 @@ export class AppService {
     const charge = depoData.amount * depoData.taarif.deposit;
     const totalCharge = depoData.amount - charge;
     account.balance = account.balance + totalCharge;
-    await this.accountsRepository.save(account).catch((error) => {
-      this.logger.error(error);
-      throw new InternalServerErrorException({
-        error: 'An error has occured processing your request',
+    if (account.balance > 1) {
+      await this.accountsRepository.save(account).catch((error) => {
+        this.logger.error(error);
+        throw new InternalServerErrorException({
+          error: 'An error has occured processing your request',
+        });
       });
-    });
+    } else {
+      throw new ForbiddenException({
+        error: 'cannot deposit a value less than 1',
+      });
+    }
     const newTransaction: ITransaction = {
       transactionTime: Date.now().toLocaleString(),
       beneficiary: account,
