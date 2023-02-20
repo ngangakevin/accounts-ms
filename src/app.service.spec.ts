@@ -11,13 +11,13 @@ const MOCK_ACCOUNTS_ENTITY: Accounts = {
   accountNumber: 'testNumber',
   accountOwner: 'testOwner',
   accountType: AccountType.Savings,
-  balance: 0,
+  balance: 99,
   currency: Currency.KSH,
-  activatedAt: new Date(),
+  activatedAt: new Date('000000001'),
   createdAt: new Date(),
-  deletedAt: new Date(),
-  updatedAt: new Date(),
+  deletedAt: null,
   updatedBy: 'testUser',
+  updatedAt: new Date(),
 };
 
 describe('AccountsAppService', () => {
@@ -30,6 +30,7 @@ describe('AccountsAppService', () => {
         {
           provide: getRepositoryToken(Accounts),
           useValue: {
+            findOne: jest.fn().mockResolvedValueOnce(MOCK_ACCOUNTS_ENTITY),
             find: jest
               .fn()
               .mockResolvedValueOnce([MOCK_ACCOUNTS_ENTITY])
@@ -172,7 +173,7 @@ describe('AccountsAppService', () => {
 
   describe('When depositToAccount is called', () => {
     const MockDepositDTO = {
-      accountNumber: 'test_account',
+      accountNumber: 'testUUID',
       amount: 100,
       channel: 'mpesa',
       currency: Currency.KSH,
@@ -201,22 +202,18 @@ describe('AccountsAppService', () => {
     });
 
     test('Deductions to the deposit comensurate to the deposit taarif are made', async () => {
-      const updatedAccount = {
-        id: 'testUUID',
-        accountNumber: 'testNumber',
-        accountOwner: 'testOwner',
-        accountType: AccountType.Savings,
-        balance: 90,
-        currency: MOCK_ACCOUNTS_ENTITY.currency,
-        activatedAt: MOCK_ACCOUNTS_ENTITY.activatedAt,
-        createdAt: MOCK_ACCOUNTS_ENTITY.createdAt,
-        deletedAt: MOCK_ACCOUNTS_ENTITY.deletedAt,
-        updatedAt: MOCK_ACCOUNTS_ENTITY.updatedAt,
-        updatedBy: 'testUser',
-      };
+      const updatedAccount = { ...MOCK_ACCOUNTS_ENTITY };
+      updatedAccount.balance =
+        MOCK_ACCOUNTS_ENTITY.balance +
+        (MockDepositDTO.amount -
+          MockDepositDTO.amount * MockDepositDTO.taarif.deposit);
+      const spy = jest
+        .spyOn(accountsRepository, 'findOneByOrFail')
+        .mockResolvedValue(MOCK_ACCOUNTS_ENTITY);
       jest.spyOn(accountsRepository, 'save');
       await service.depositToAccount(MockDepositDTO);
       expect(accountsRepository.save).toHaveBeenCalledWith(updatedAccount);
+      spy.mockReset();
     });
 
     test('An update is made to the account that is being deposited to', async () => {
@@ -242,9 +239,137 @@ describe('AccountsAppService', () => {
       ).rejects.toThrowError(ForbiddenException);
     });
   });
-  // describe('When freezeAccount is called', () => {});
 
-  // describe('When deactivateAccount is called', () => {});
+  describe('When fundsTransfer is called', () => {
+    const transferDTO = {
+      from: {
+        accountNumber: 'testUUID1',
+        amount: 10,
+        channel: 'mpesa',
+        currency: Currency.KSH,
+        taarif: {
+          deposit: 0.1,
+          transfer: 0.1,
+          withdraw: 0.1,
+        },
+      },
+      to: {
+        accountNumber: 'testUUID2',
+        amount: 10,
+        channel: 'mpesa',
+        currency: Currency.KSH,
+        taarif: {
+          deposit: 0.1,
+          transfer: 0.1,
+          withdraw: 0.1,
+        },
+      },
+      channel: 'mpesa',
+    };
+    test('Amount deposited should always be greater than 1', () => {
+      const transferWithNegativeAmount = { ...transferDTO };
+      transferWithNegativeAmount.from.amount = -100;
+      transferWithNegativeAmount.to.amount = -100;
 
-  // describe('When reactivateAccount is called', () => {});
+      jest
+        .spyOn(accountsRepository, 'findOneByOrFail')
+        .mockResolvedValue(MOCK_ACCOUNTS_ENTITY);
+      expect(
+        service.fundsTransfer(transferWithNegativeAmount),
+      ).rejects.toThrowError(ForbiddenException);
+    });
+
+    test('Sender balance must exceed amount + taarif deductions', () => {
+      const transferWithNegativeAmount = { ...transferDTO };
+      transferWithNegativeAmount.from.amount = -100;
+      transferWithNegativeAmount.to.amount = -100;
+      jest
+        .spyOn(accountsRepository, 'findOneByOrFail')
+        .mockResolvedValue(MOCK_ACCOUNTS_ENTITY);
+      expect(
+        service.fundsTransfer(transferWithNegativeAmount),
+      ).rejects.toThrowError(ForbiddenException);
+    });
+
+    test('Should not allow transfer within the same account', () => {
+      expect(service.fundsTransfer(transferDTO)).rejects.toThrowError(
+        ForbiddenException,
+      );
+    });
+
+    test('Deductions to the sender and beneficiary should be comensurate to taarifs', async () => {
+      const sender = { ...MOCK_ACCOUNTS_ENTITY };
+      sender.balance = 200;
+      sender.accountNumber = 'testUUID1';
+      sender.id = 'testUUID1';
+
+      const recepient = { ...MOCK_ACCOUNTS_ENTITY };
+      recepient.balance = 200;
+      recepient.accountNumber = 'testUUID2';
+      recepient.id = 'testUUID2';
+
+      const updatedSender = { ...sender };
+      updatedSender.balance = 189;
+
+      const updatedRecepient = { ...recepient };
+      updatedRecepient.balance = 209;
+      jest
+        .spyOn(accountsRepository, 'findOneByOrFail')
+        .mockResolvedValueOnce(sender)
+        .mockResolvedValueOnce(recepient);
+      const response = await service.fundsTransfer(transferDTO);
+      expect(accountsRepository.save).toHaveBeenCalledTimes(2);
+      expect(accountsRepository.save).toHaveBeenCalledWith(updatedSender);
+      expect(accountsRepository.save).toHaveBeenLastCalledWith(
+        updatedRecepient,
+      );
+      expect(response).toHaveProperty('message');
+    });
+  });
+
+  describe('When freezeAccount is called', () => {
+    test('deletedAt time is updated', async () => {
+      await service.freezeAccount({ accountNumber: '123456', months: 1 });
+      expect(accountsRepository.save).toBeCalledWith(
+        expect.objectContaining({ deletedAt: MOCK_ACCOUNTS_ENTITY.deletedAt }),
+      );
+    });
+  });
+
+  describe('When deactivateAccount is called', () => {
+    test('The item to be deleted exists', async () => {
+      jest.spyOn(accountsRepository, 'findOneByOrFail');
+      await service.deactivateAccount({
+        accountNumber: 'already_deleted',
+      });
+      expect(accountsRepository.findOneByOrFail).rejects.toMatchObject(
+        new Error(),
+      );
+    });
+
+    test('Item is deleted and message returned', async () => {
+      jest.spyOn(accountsRepository, 'save');
+      const spy = jest
+        .spyOn(global, 'Date')
+        .mockImplementation(() => '2023-02-20T13:29:07.450Z');
+      const response = await service.deactivateAccount({
+        accountNumber: '1234',
+      });
+      expect(accountsRepository.save).toBeCalledWith(
+        expect.objectContaining({ deletedAt: new Date() }),
+      );
+      expect(response).toHaveProperty('message');
+      spy.mockReset();
+    });
+  });
+  describe('When reactivateAccount is called', () => {
+    test('Account must be deactivated first and called with null for deletedAt', async () => {
+      const reactivateAccount = { ...MOCK_ACCOUNTS_ENTITY };
+      reactivateAccount.activatedAt = new Date();
+      jest.spyOn(accountsRepository, 'findOne');
+      await service.reactivateAccount(MOCK_ACCOUNTS_ENTITY);
+      expect(accountsRepository.findOne).toReturn();
+      expect(accountsRepository.save).toBeCalledWith(reactivateAccount);
+    });
+  });
 });
