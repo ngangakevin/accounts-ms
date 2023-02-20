@@ -158,8 +158,19 @@ export class AppService {
       this.logger.error('Currency Missmatch');
       throw new ForbiddenException({ error: 'Currency Mismatch' });
     }
+
+    if (transferData.from.accountNumber === transferData.to.accountNumber) {
+      throw new ForbiddenException({
+        error: 'Cannot transfer within the same account',
+      });
+    }
+
     const senderAccount = await this.findAccByNumber(
       transferData.from.accountNumber,
+    );
+
+    const recepientAccount = await this.findAccByNumber(
+      transferData.to.accountNumber,
     );
 
     const senderProvisionalCharge =
@@ -171,8 +182,10 @@ export class AppService {
       transferData.from.amount * transferData.to.taarif.deposit;
     const totalRecepientCredit =
       transferData.from.amount - recepientProvisionalCharge;
-
-    if (senderAccount.balance < totalSenderDeductions) {
+    if (
+      senderAccount.balance < totalSenderDeductions ||
+      totalSenderDeductions < 1
+    ) {
       this.logger.error(
         `${senderAccount} has insufficient balance to transfer funds`,
       );
@@ -180,10 +193,6 @@ export class AppService {
         error: 'Insufficient funds to commit to funds transfer.',
       });
     }
-
-    const recepientAccount = await this.findAccByNumber(
-      transferData.to.accountNumber,
-    );
 
     senderAccount.balance = senderAccount.balance - totalSenderDeductions;
     recepientAccount.balance = recepientAccount.balance + totalRecepientCredit;
@@ -256,13 +265,20 @@ export class AppService {
         withDeleted: true,
       })
       .catch((error) => {
-        console.log(error);
-        throw new Error('error');
+        this.logger.log(error);
+        throw new InternalServerErrorException({
+          error: 'An error has occured while processing your request',
+        });
       });
     account.deletedAt = null;
     account.activatedAt = new Date();
 
-    await this.accountsRepository.save(account);
+    await this.accountsRepository.save(account).catch((error) => {
+      this.logger.log(error);
+      throw new InternalServerErrorException({
+        error: 'An error has occured while processing your request',
+      });
+    });
 
     return { message: 'Account has been reactivated successfully' };
   }
