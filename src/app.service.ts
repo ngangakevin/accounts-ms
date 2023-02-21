@@ -123,7 +123,7 @@ export class AppService {
     const charge = depoData.amount * depoData.taarif.deposit;
     const totalCharge = depoData.amount - charge;
     account.balance = account.balance + totalCharge;
-    if (account.balance > 1) {
+    if (account.balance > 1 && depoData.amount > 1) {
       await this.accountsRepository.save(account).catch((error) => {
         this.logger.error(error);
         throw new InternalServerErrorException({
