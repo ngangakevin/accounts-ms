@@ -181,7 +181,7 @@ describe('AccountsAppService', () => {
       amount: 100,
       channel: 'mpesa',
       currency: Currency.KSH,
-      taarif: {
+      tarrif: {
         deposit: 0.1,
         transfer: 0.1,
         withdraw: 0.1,
@@ -194,7 +194,7 @@ describe('AccountsAppService', () => {
         amount: 100,
         channel: 'mpesa',
         currency: Currency.USDollar,
-        taarif: {
+        tarrif: {
           deposit: 0.1,
           transfer: 0.1,
           withdraw: 0.1,
@@ -205,12 +205,12 @@ describe('AccountsAppService', () => {
       ).rejects.toThrowError(ForbiddenException);
     });
 
-    test('Deductions to the deposit comensurate to the deposit taarif are made', async () => {
+    test('Deductions to the deposit comensurate to the deposit tarrif are made', async () => {
       const updatedAccount = { ...MOCK_ACCOUNTS_ENTITY };
       updatedAccount.balance =
         MOCK_ACCOUNTS_ENTITY.balance +
         (MockDepositDTO.amount -
-          MockDepositDTO.amount * MockDepositDTO.taarif.deposit);
+          MockDepositDTO.amount * MockDepositDTO.tarrif.deposit);
       const spy = jest
         .spyOn(accountsRepository, 'findOneByOrFail')
         .mockResolvedValue(MOCK_ACCOUNTS_ENTITY);
@@ -232,7 +232,7 @@ describe('AccountsAppService', () => {
         amount: -100,
         channel: 'mpesa',
         currency: Currency.KSH,
-        taarif: {
+        tarrif: {
           deposit: 0.1,
           transfer: 0.1,
           withdraw: 0.1,
@@ -251,7 +251,7 @@ describe('AccountsAppService', () => {
         amount: 10,
         channel: 'mpesa',
         currency: Currency.KSH,
-        taarif: {
+        tarrif: {
           deposit: 0.1,
           transfer: 0.1,
           withdraw: 0.1,
@@ -262,7 +262,7 @@ describe('AccountsAppService', () => {
         amount: 10,
         channel: 'mpesa',
         currency: Currency.KSH,
-        taarif: {
+        tarrif: {
           deposit: 0.1,
           transfer: 0.1,
           withdraw: 0.1,
@@ -288,7 +288,7 @@ describe('AccountsAppService', () => {
       ).rejects.toThrowError(ForbiddenException);
     });
 
-    test('Sender balance must exceed amount + taarif deductions', () => {
+    test('Sender balance must exceed amount + tarrif deductions', () => {
       const transferWithNegativeAmount = { ...transferDTO };
       transferWithNegativeAmount.from.amount = -100;
       transferWithNegativeAmount.to.amount = -100;
@@ -306,7 +306,7 @@ describe('AccountsAppService', () => {
       );
     });
 
-    test('Deductions to the sender and beneficiary should be comensurate to taarifs', async () => {
+    test('Deductions to the sender and beneficiary should be comensurate to tarrifs', async () => {
       const sender = { ...MOCK_ACCOUNTS_ENTITY };
       sender.balance = 200;
       sender.accountNumber = 'testUUID1';

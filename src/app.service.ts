@@ -120,7 +120,7 @@ export class AppService {
         error: 'Account does not accept specified currency',
       });
     }
-    const charge = depoData.amount * depoData.taarif.deposit;
+    const charge = depoData.amount * depoData.tarrif.deposit;
     const totalCharge = depoData.amount - charge;
     account.balance = account.balance + totalCharge;
     if (account.balance > 1 && depoData.amount > 1) {
@@ -144,7 +144,7 @@ export class AppService {
       transaction: Currency.KSH,
       transactionType: TransactionType.Deposit,
       creditCharge: 0,
-      debitCharge: depoData.taarif.deposit,
+      debitCharge: depoData.tarrif.deposit,
     };
     return this.accountsClient.send('deposit', {
       newTransaction,
@@ -174,12 +174,12 @@ export class AppService {
     );
 
     const senderProvisionalCharge =
-      transferData.from.amount * transferData.from.taarif.transfer;
+      transferData.from.amount * transferData.from.tarrif.transfer;
     const totalSenderDeductions =
       transferData.from.amount + senderProvisionalCharge;
 
     const recepientProvisionalCharge =
-      transferData.from.amount * transferData.to.taarif.deposit;
+      transferData.from.amount * transferData.to.tarrif.deposit;
     const totalRecepientCredit =
       transferData.from.amount - recepientProvisionalCharge;
     if (
@@ -206,8 +206,8 @@ export class AppService {
       amount: transferData.from.amount,
       transaction: Currency.KSH,
       transactionType: TransactionType.Transfer,
-      creditCharge: transferData.from.taarif.transfer,
-      debitCharge: transferData.to.taarif.deposit,
+      creditCharge: transferData.from.tarrif.transfer,
+      debitCharge: transferData.to.tarrif.deposit,
     };
 
     return this.accountsClient.send('transfer', {
