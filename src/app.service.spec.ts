@@ -59,6 +59,10 @@ describe('AccountsAppService', () => {
     service = await module.get(AppService);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('When createAccount is called', () => {
     const createAccountDTO = {
       ownerId: 'testUUID',
@@ -270,10 +274,15 @@ describe('AccountsAppService', () => {
       const transferWithNegativeAmount = { ...transferDTO };
       transferWithNegativeAmount.from.amount = -100;
       transferWithNegativeAmount.to.amount = -100;
+      const sender = { ...MOCK_ACCOUNTS_ENTITY };
+      sender.accountNumber = 'testing_mocker';
+      const receiver = { ...MOCK_ACCOUNTS_ENTITY };
+      receiver.accountNumber = 'testing_mocker2';
 
       jest
         .spyOn(accountsRepository, 'findOneByOrFail')
-        .mockResolvedValue(MOCK_ACCOUNTS_ENTITY);
+        .mockResolvedValueOnce(sender)
+        .mockResolvedValueOnce(receiver);
       expect(
         service.fundsTransfer(transferWithNegativeAmount),
       ).rejects.toThrowError(ForbiddenException);
@@ -363,13 +372,16 @@ describe('AccountsAppService', () => {
     });
   });
   describe('When reactivateAccount is called', () => {
-    test('Account must be deactivated first and called with null for deletedAt', async () => {
+    test('Account must be saved with null for deletedAt', async () => {
+      const deactivatedAccount = { ...MOCK_ACCOUNTS_ENTITY };
+      deactivatedAccount.deletedAt = new Date();
       const reactivateAccount = { ...MOCK_ACCOUNTS_ENTITY };
       reactivateAccount.activatedAt = new Date();
       jest.spyOn(accountsRepository, 'findOne');
       await service.reactivateAccount(MOCK_ACCOUNTS_ENTITY);
-      expect(accountsRepository.findOne).toReturn();
-      expect(accountsRepository.save).toBeCalledWith(reactivateAccount);
+      expect(accountsRepository.save).toBeCalledWith(
+        expect.objectContaining({ deletedAt: null }),
+      );
     });
   });
 });
