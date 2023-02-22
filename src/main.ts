@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
@@ -9,6 +10,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log'],
   });
   const configs = app.select(ConfigModule).get(ConfigService);
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.connectMicroservice({
     transport: Transport.REDIS,
     options: {
