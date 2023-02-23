@@ -27,6 +27,9 @@ export function ValidateNested(
             }
             return true;
           } else {
+            if (value === undefined) {
+              return false;
+            }
             return validateSync(plainToInstance(schema, value)).length
               ? false
               : true;
@@ -43,6 +46,9 @@ export function ValidateNested(
               ).toString();
             }
           } else {
+            if (args.value === undefined) {
+              return `${args.property} is a required property`;
+            }
             return (
               `${args.property}: ` +
               validateSync(plainToInstance(schema, args.value))

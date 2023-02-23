@@ -1,13 +1,13 @@
-import { IsNotEmptyObject, IsString } from 'class-validator';
+import { IsObject, IsString } from 'class-validator';
 import { ValidateNested } from '../decorators';
 import { CreateDepositDTO } from './create-deposit.dto';
 
 export class CreateTransferDTO {
-  @IsNotEmptyObject()
+  @IsObject()
   @ValidateNested(CreateDepositDTO)
   from: CreateDepositDTO;
 
-  @IsNotEmptyObject()
+  @IsObject()
   @ValidateNested(CreateDepositDTO)
   to: CreateDepositDTO;
 
