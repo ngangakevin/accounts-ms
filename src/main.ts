@@ -10,7 +10,13 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log'],
   });
   const configs = app.select(ConfigModule).get(ConfigService);
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      forbidNonWhitelisted: true,
+      transform: true,
+      whitelist: true,
+    }),
+  );
   app.connectMicroservice({
     transport: Transport.REDIS,
     options: {
