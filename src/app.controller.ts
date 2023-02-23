@@ -10,7 +10,9 @@ import {
 } from '@common';
 import { MessagePattern } from '@nestjs/microservices';
 import { AccountType } from './enums';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('accounts')
 @Controller('/accounts')
 export class AppController {
   constructor(private readonly appService: AppService) {}
