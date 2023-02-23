@@ -1,12 +1,14 @@
-import { Type } from 'class-transformer';
-import { IsString } from 'class-validator';
+import { IsNotEmptyObject, IsString } from 'class-validator';
+import { ValidateNested } from '../decorators';
 import { CreateDepositDTO } from './create-deposit.dto';
 
 export class CreateTransferDTO {
-  @Type(() => CreateDepositDTO)
+  @IsNotEmptyObject()
+  @ValidateNested(CreateDepositDTO)
   from: CreateDepositDTO;
 
-  @Type(() => CreateDepositDTO)
+  @IsNotEmptyObject()
+  @ValidateNested(CreateDepositDTO)
   to: CreateDepositDTO;
 
   @IsString()
